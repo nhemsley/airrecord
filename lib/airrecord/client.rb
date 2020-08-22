@@ -1,6 +1,8 @@
 require 'uri'
 require_relative 'query_string'
 require_relative 'faraday_rate_limiter'
+require_relative 'faraday_cache'
+require_relative 'cache'
 
 module Airrecord
   class Client
@@ -25,8 +27,8 @@ module Airrecord
         },
         request: { params_encoder: Airrecord::QueryString },
       ) { |conn|
-        if Airrecord.cache?
-          conn.request :airrecord_cache
+        if Airrecord::Cache.enabled?
+          conn.request :airrecord_cache, record_into_cache: Airrecord::Cache.currently_caching?
         end
         if Airrecord.throttle?
           conn.request :airrecord_rate_limiter, requests_per_second: AIRTABLE_RPS_LIMIT

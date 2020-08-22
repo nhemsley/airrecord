@@ -40,6 +40,14 @@ module Airrecord
       alias has_one belongs_to
 
       def find(id)
+        from_cache = get_from_cache(id)
+        return from_cache unless from_cache.nil?
+
+        find_real(id)
+      end
+
+      def find_real(id)
+        puts "FINDING #{self} || #{id}"
         response = client.connection.get("/v0/#{resolve_base_key}/#{client.escape(table_name)}/#{id}")
         parsed_response = client.parse(response.body)
 
@@ -51,11 +59,30 @@ module Airrecord
       end
 
       def find_many(ids)
+        from_cache = get_many_from_cache(ids)
+        ids_from_cache = from_cache.map(&:id)
+        ids_to_fetch = ids - ids_from_cache
+        from_cache.concat find_many_real(ids_to_fetch)
+      end
+
+      def find_many_real(ids)
         return [] if ids.empty?
 
         or_args = ids.map { |id| "RECORD_ID() = '#{id}'"}.join(',')
         formula = "OR(#{or_args})"
         records(filter: formula).sort_by { |record| or_args.index(record.id) }
+      end
+
+      def get_from_cache(id)
+        return nil unless Airrecord::Cache.enabled?
+        Airrecord::Cache.global_cache.get(self, id)
+      end
+
+      def get_many_from_cache(ids)
+        return [] unless Airrecord::Cache.enabled?
+
+        ids.map {|id| Airrecord::Cache.global_cache.get(self, id)}.
+            reject(&:nil?)
       end
 
       def create(fields)

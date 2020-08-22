@@ -17,7 +17,4 @@ module Airrecord
     @throttle
   end
 
-  def cache?
-    return true if @cache
-  end
 end

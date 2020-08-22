@@ -26,6 +26,9 @@ module Airrecord
       
       @@currently_caching = true
       results = yield
+      results.each do |result|
+        set(result.class, result.id, result)
+      end
       @@currently_caching = false
 
     end

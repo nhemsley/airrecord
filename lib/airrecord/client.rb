@@ -1,8 +1,6 @@
 require 'uri'
 require_relative 'query_string'
 require_relative 'faraday_rate_limiter'
-require_relative 'faraday_cache'
-require_relative 'cache'
 
 module Airrecord
   class Client

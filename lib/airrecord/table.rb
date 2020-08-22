@@ -1,3 +1,5 @@
+require_relative 'cache'
+
 module Airrecord
   class Table
     class << self
